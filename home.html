@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEW | Presence</title>
+<title>CHEW | Core</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
 
@@ -15,9 +15,9 @@ body{
   overflow:hidden;
 }
 
-/* 3D SCENE */
+/* SCENE */
 .scene{
-  perspective:1200px;
+  perspective:1400px;
   width:100vw;
   height:100vh;
   overflow:hidden;
@@ -29,38 +29,41 @@ body{
   width:100%;
   height:100%;
   transform-style:preserve-3d;
-  transition:transform 0.1s;
 }
 
 /* GRID FLOOR */
 .grid{
   position:absolute;
-  width:200%;
-  height:200%;
+  width:300%;
+  height:300%;
   background:
-    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size:60px 60px;
-  transform:rotateX(75deg) translateZ(-200px);
-  opacity:0.25;
-  animation:moveGrid 6s linear infinite;
+    linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px);
+  background-size:80px 80px;
+  transform:rotateX(75deg) translateZ(-300px);
+  opacity:0.2;
 }
 
-@keyframes moveGrid{
-  from{background-position:0 0;}
-  to{background-position:0 60px;}
-}
-
-/* FOG LAYER */
+/* FOG */
 .fog{
   position:absolute;
-  width:150%;
-  height:150%;
-  background:radial-gradient(circle, rgba(255,255,255,0.05), transparent 70%);
-  transform:translateZ(-300px);
+  width:200%;
+  height:200%;
+  background:radial-gradient(circle, rgba(255,255,255,0.06), transparent 70%);
+  transform:translateZ(-400px);
 }
 
-/* PARTICLES (stars) */
+/* LIGHT ORB */
+.light{
+  position:absolute;
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%);
+  transform:translateZ(-200px);
+}
+
+/* STARS */
 .star{
   position:absolute;
   width:2px;
@@ -69,7 +72,7 @@ body{
   opacity:0.4;
 }
 
-/* MAIN UI */
+/* UI */
 .ui{
   position:absolute;
   top:50%;
@@ -78,19 +81,39 @@ body{
   text-align:center;
 }
 
-/* NAME */
+/* TITLE */
 h1{
   font-size:72px;
   letter-spacing:12px;
   text-shadow:0 0 30px rgba(255,255,255,0.3);
-  animation:pulse 3s infinite alternate;
 }
 
-@keyframes pulse{
-  from{ text-shadow:0 0 20px rgba(255,255,255,0.2); }
-  to{ text-shadow:0 0 70px rgba(255,255,255,0.8); }
+/* GLITCH */
+h1::before, h1::after{
+  content:"CHEW";
+  position:absolute;
+  left:0;
+  width:100%;
+  opacity:0.2;
+}
+h1::before{
+  color:red;
+  animation:glitch 1s infinite;
+}
+h1::after{
+  color:cyan;
+  animation:glitch 1s infinite reverse;
 }
 
+@keyframes glitch{
+  0%{transform:translate(0);}
+  20%{transform:translate(-2px,2px);}
+  40%{transform:translate(2px,-2px);}
+  60%{transform:translate(-1px,1px);}
+  80%{transform:translate(1px,-1px);}
+}
+
+/* ROLE */
 .role{
   margin-top:10px;
   font-size:12px;
@@ -105,28 +128,42 @@ h1{
   gap:40px;
   justify-content:center;
 }
-
-.stat{
-  text-align:center;
-}
-.stat h2{
-  font-size:26px;
-}
-.stat span{
-  font-size:10px;
-  opacity:0.5;
-  letter-spacing:2px;
-}
+.stat h2{font-size:28px;}
+.stat span{font-size:10px;opacity:0.5;}
 
 /* BUTTON */
 .btn{
-  margin-top:50px;
+  margin-top:60px;
   font-size:12px;
   letter-spacing:4px;
   opacity:0.5;
   cursor:pointer;
 }
 .btn:hover{opacity:1;}
+
+/* SCANLINES */
+.scanlines{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.03),
+    rgba(255,255,255,0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events:none;
+}
+
+/* VIGNETTE */
+.vignette{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:radial-gradient(circle, transparent 50%, black 100%);
+  pointer-events:none;
+}
 </style>
 </head>
 
@@ -134,68 +171,89 @@ h1{
 
 <div class="scene">
   <div class="camera" id="camera">
-
     <div class="grid"></div>
     <div class="fog"></div>
+    <div class="light" id="light"></div>
 
     <div class="ui">
       <h1>CHEW</h1>
       <div class="role">VILLAIN GOALKEEPER</div>
 
       <div class="stats">
-        <div class="stat">
-          <h2>99</h2>
-          <span>REFLEXES</span>
-        </div>
-        <div class="stat">
-          <h2>100</h2>
-          <span>AURA</span>
-        </div>
-        <div class="stat">
-          <h2>CLUTCH</h2>
-          <span>MENTALITY</span>
-        </div>
+        <div class="stat"><h2>99</h2><span>REFLEXES</span></div>
+        <div class="stat"><h2>100</h2><span>AURA</span></div>
+        <div class="stat"><h2>CLUTCH</h2><span>MENTALITY</span></div>
       </div>
 
       <div class="btn" onclick="back()">RETURN</div>
     </div>
-
   </div>
 </div>
 
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
 <script>
-// STAR FIELD
-for(let i=0;i<120;i++){
+// ---------- STAR FIELD ----------
+for(let i=0;i<200;i++){
   let s=document.createElement('div');
   s.className='star';
   s.style.left=Math.random()*100+'vw';
   s.style.top=Math.random()*100+'vh';
-  s.style.transform=`translateZ(${Math.random()*-500}px)`;
+  s.style.transform=`translateZ(${Math.random()*-800}px)`;
   document.body.appendChild(s);
 }
 
-// CAMERA PARALLAX (mouse movement)
+// ---------- CAMERA PHYSICS ----------
 const cam = document.getElementById("camera");
+const light = document.getElementById("light");
 
-document.addEventListener("mousemove", (e)=>{
-  let x = (e.clientX / window.innerWidth - 0.5) * 20;
-  let y = (e.clientY / window.innerHeight - 0.5) * 20;
+let targetX=0,targetY=0;
+let currentX=0,currentY=0;
+let depth=0;
 
-  cam.style.transform = `
-    rotateY(${x}deg)
-    rotateX(${-y}deg)
-    translateZ(0)
-  `;
+// mouse
+document.addEventListener("mousemove",(e)=>{
+  targetX = (e.clientX/window.innerWidth - 0.5)*25;
+  targetY = (e.clientY/window.innerHeight - 0.5)*25;
 });
 
-// FORWARD MOTION (feels like moving through space)
-let z = 0;
-setInterval(()=>{
-  z += 1;
-  cam.style.transform += ` translateZ(${z}px)`;
-},50);
+// keyboard drift
+let keys={};
+document.addEventListener("keydown",e=>keys[e.key]=true);
+document.addEventListener("keyup",e=>keys[e.key]=false);
 
-// BACK BUTTON
+// animation loop
+function animate(){
+
+  // smooth inertia
+  currentX += (targetX-currentX)*0.05;
+  currentY += (targetY-currentY)*0.05;
+
+  // forward motion (looped)
+  depth += 0.4;
+  if(depth > 300) depth = 0;
+
+  // WASD movement
+  if(keys["w"]) depth += 1;
+  if(keys["s"]) depth -= 1;
+
+  // apply transform (NO stacking)
+  cam.style.transform = `
+    rotateY(${currentX}deg)
+    rotateX(${-currentY}deg)
+    translateZ(${depth}px)
+  `;
+
+  // move light with mouse
+  light.style.left = (50 + currentX*2) + "%";
+  light.style.top = (50 + currentY*2) + "%";
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ---------- RETURN ----------
 function back(){
   document.body.style.opacity="0";
   setTimeout(()=>{
