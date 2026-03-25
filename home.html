@@ -3,79 +3,156 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEW | Home</title>
+<title>CHEW | Elite</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
 
 <style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 body{
-  margin:0;
   background:black;
   color:white;
-  font-family:'Inter',sans-serif;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
   overflow:hidden;
 }
 
+/* animated gradient */
+.bg{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:radial-gradient(circle at center, #111, black 70%);
+  z-index:-2;
+}
+
+/* moving light */
+.light{
+  position:absolute;
+  width:400px;
+  height:400px;
+  background:radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  border-radius:50%;
+  animation:move 8s infinite alternate ease-in-out;
+}
+@keyframes move{
+  from{transform:translate(20vw,30vh);}
+  to{transform:translate(60vw,60vh);}
+}
+
+/* container */
 .container{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
   text-align:center;
-  max-width:600px;
 }
 
+/* name glitch */
 h1{
-  font-size:48px;
-  letter-spacing:6px;
+  font-size:72px;
+  letter-spacing:12px;
+  position:relative;
 }
 
-p{
-  margin-top:20px;
-  opacity:0.7;
-  line-height:1.6;
+h1::before, h1::after{
+  content:"CHEW";
+  position:absolute;
+  left:0;
+  width:100%;
+  opacity:0.2;
 }
 
-/* subtle glow */
-.glow{
-  text-shadow:0 0 25px rgba(255,255,255,0.2);
+h1::before{
+  top:-2px;
+  color:red;
+  animation:glitch 1s infinite;
+}
+h1::after{
+  top:2px;
+  color:cyan;
+  animation:glitch 1s infinite reverse;
 }
 
-/* back button */
-.back{
-  margin-top:40px;
-  display:inline-block;
+@keyframes glitch{
+  0%{transform:translate(0);}
+  20%{transform:translate(-2px,2px);}
+  40%{transform:translate(2px,-2px);}
+  60%{transform:translate(-1px,1px);}
+  80%{transform:translate(1px,-1px);}
+  100%{transform:translate(0);}
+}
+
+/* subtitle */
+.role{
+  margin-top:10px;
   font-size:12px;
-  letter-spacing:3px;
+  letter-spacing:5px;
+  opacity:0.6;
+}
+
+/* cards */
+.cards{
+  margin-top:50px;
+  display:flex;
+  gap:30px;
+  justify-content:center;
+}
+
+.card{
+  padding:20px 30px;
+  border:1px solid rgba(255,255,255,0.1);
+  backdrop-filter:blur(10px);
+  transition:0.3s;
+}
+.card:hover{
+  transform:translateY(-5px);
+  border-color:white;
+}
+
+/* button */
+.btn{
+  margin-top:60px;
+  font-size:12px;
+  letter-spacing:4px;
   opacity:0.5;
   cursor:pointer;
 }
-.back:hover{opacity:1;}
+.btn:hover{opacity:1;}
 </style>
 </head>
 
 <body>
 
+<div class="bg"></div>
+<div class="light"></div>
+
 <div class="container">
-  <h1 class="glow">CHEW</h1>
+  <h1>CHEW</h1>
+  <div class="role">VILLAIN GOALKEEPER</div>
 
-  <p>
-    Villain goalkeeper.<br>
-    Cold presence in the box.<br><br>
+  <div class="cards">
+    <div class="card">
+      <h2>99</h2>
+      <p>REFLEXES</p>
+    </div>
+    <div class="card">
+      <h2>100</h2>
+      <p>AURA</p>
+    </div>
+    <div class="card">
+      <h2>CLUTCH</h2>
+      <p>MENTALITY</p>
+    </div>
+  </div>
 
-    Built different.<br>
-    No fear. No hesitation.<br>
-    Just reaction.
-  </p>
-
-  <div class="back" onclick="goBack()">RETURN</div>
+  <div class="btn" onclick="back()">RETURN</div>
 </div>
 
 <script>
-function goBack(){
+function back(){
   document.body.style.opacity="0";
   setTimeout(()=>{
-    window.location.href="index.html";
+    window.location.href="./index.html";
   },800);
 }
 </script>
