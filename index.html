@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEW | Aura Intro</title>
+<title>CHEW</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
 
@@ -11,13 +11,33 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 body{overflow:hidden;background:black;color:white;}
 
-/* VIDEO */
-#bgvid{
+/* YOUTUBE BACKGROUND */
+.video-bg{
   position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  object-fit:cover;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
   z-index:-3;
+}
+
+.video-bg iframe{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:100vw;
+  height:56.25vw;
+  min-height:100vh;
+  min-width:177.77vh;
+  pointer-events:none;
+  animation:slowZoom 20s infinite alternate ease-in-out;
+}
+
+@keyframes slowZoom{
+  from{ transform:translate(-50%,-50%) scale(1); }
+  to{ transform:translate(-50%,-50%) scale(1.1); }
 }
 
 /* OVERLAY */
@@ -107,12 +127,18 @@ body{overflow:hidden;background:black;color:white;}
 }
 </style>
 </head>
+
 <body>
 
-<!-- VIDEO (PUT YOUR TOTTENHAM EDIT HERE) -->
-<video autoplay muted loop playsinline id="bgvid">
-  <source src="tottenham.mp4" type="video/mp4">
-</video>
+<!-- YOUTUBE VIDEO -->
+<div class="video-bg">
+  <iframe 
+    src="https://www.youtube.com/embed/yxvaURdWJS8?autoplay=1&mute=1&controls=0&loop=1&playlist=yxvaURdWJS8&modestbranding=1"
+    frameborder="0"
+    allow="autoplay; fullscreen"
+    allowfullscreen>
+  </iframe>
+</div>
 
 <div id="overlay"></div>
 <div id="flash"></div>
@@ -127,9 +153,9 @@ body{overflow:hidden;background:black;color:white;}
 
 <div class="enter" id="enter" onclick="enterSite()">ENTER</div>
 
-<!-- AURA MUSIC -->
+<!-- MUSIC -->
 <audio id="music" loop>
-  <source src="aura.mp3" type="audio/mp3">
+  <source src="./aura.mp3" type="audio/mp3">
 </audio>
 
 <script>
@@ -187,24 +213,23 @@ let build=setInterval(()=>{
     flash.style.opacity="1";
     setTimeout(()=>flash.style.opacity="0",200);
 
-    // PLAY MUSIC (safe start)
-    music.volume = 0.6;
-    music.play().catch(()=>{});
-
     clearInterval(build);
   }
 },180);
 
+// MUSIC (user interaction required)
+document.addEventListener("click", () => {
+  music.volume = 0.6;
+  music.play().catch(()=>{});
+}, { once: true });
+
 // ENTER
 function enterSite(){
-  // ensure music plays after click (browser safe)
-  music.play().catch(()=>{});
-
   document.body.style.transition="1.2s";
   document.body.style.opacity="0";
 
   setTimeout(()=>{
-    window.location.href="home.html";
+    window.location.href="./home.html";
   },1200);
 }
 </script>
