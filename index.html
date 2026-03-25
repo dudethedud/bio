@@ -4,45 +4,137 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CHEW | Aura Intro</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 body{overflow:hidden;background:black;color:white;}
-#overlay{position:fixed;width:100%;height:100%;background:radial-gradient(circle, rgba(0,0,0,0.3), rgba(0,0,0,0.95));z-index:-2;transition:1s;}
-.center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
-.name{font-size:64px;letter-spacing:10px;font-weight:600;transition:0.3s;text-shadow:0 0 20px rgba(255,255,255,0.15);}
-.subtitle{margin-top:10px;font-size:12px;letter-spacing:4px;opacity:0.5;}
-.auraWrap{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);width:320px;height:4px;background:rgba(255,255,255,0.1);}
-.auraBar{height:100%;width:0%;background:white;transition:0.2s;}
-.auraText{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:3px;opacity:0.6;}
-.enter{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:4px;opacity:0;cursor:pointer;transition:0.5s;}
+
+/* VIDEO */
+#bgvid{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  z-index:-3;
+}
+
+/* OVERLAY */
+#overlay{
+  position:fixed;
+  width:100%; height:100%;
+  background:radial-gradient(circle, rgba(0,0,0,0.4), rgba(0,0,0,0.95));
+  z-index:-2;
+  transition:1s;
+}
+
+/* CENTER */
+.center{
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+}
+.name{
+  font-size:64px;
+  letter-spacing:10px;
+  font-weight:600;
+  text-shadow:0 0 20px rgba(255,255,255,0.15);
+  transition:0.3s;
+}
+.subtitle{
+  margin-top:10px;
+  font-size:12px;
+  letter-spacing:4px;
+  opacity:0.5;
+}
+
+/* AURA */
+.auraWrap{
+  position:absolute;
+  bottom:90px;
+  left:50%;
+  transform:translateX(-50%);
+  width:320px; height:4px;
+  background:rgba(255,255,255,0.1);
+}
+.auraBar{
+  height:100%; width:0%;
+  background:white;
+}
+.auraText{
+  position:absolute;
+  bottom:110px; left:50%;
+  transform:translateX(-50%);
+  font-size:11px; letter-spacing:3px; opacity:0.6;
+}
+
+/* ENTER */
+.enter{
+  position:absolute;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:12px; letter-spacing:4px;
+  opacity:0; cursor:pointer;
+  transition:0.4s;
+}
 .enter:hover{opacity:1;}
-#flash{position:fixed;width:100%;height:100%;background:white;opacity:0;pointer-events:none;z-index:5;transition:0.2s;}
-.particle{position:absolute;width:2px;height:2px;background:white;opacity:0.25;animation:float linear infinite;}
-@keyframes float{from{transform:translateY(0);}to{transform:translateY(-120vh);}}
-.bg iframe{position:fixed;width:120%;height:120%;top:-10%;left:-10%;pointer-events:none;filter:brightness(0.3) contrast(1.3);z-index:-3;}
+
+/* FLASH */
+#flash{
+  position:fixed;
+  width:100%; height:100%;
+  background:white;
+  opacity:0;
+  pointer-events:none;
+  z-index:5;
+  transition:0.2s;
+}
+
+/* PARTICLES */
+.particle{
+  position:absolute;
+  width:2px; height:2px;
+  background:white;
+  opacity:0.25;
+  animation:float linear infinite;
+}
+@keyframes float{
+  from{transform:translateY(0);}
+  to{transform:translateY(-120vh);}
+}
 </style>
 </head>
 <body>
 
-<!-- BACKGROUND VIDEO (YouTube playlist) -->
-<div class="bg">
-<iframe src="https://www.youtube.com/embed/videoseries?list=PLVWqRc88TLrB4Uj-nWRhzoIuD8wHQEovi&autoplay=1&mute=1&controls=0&loop=1&playlist=PLVWqRc88TLrB4Uj-nWRhzoIuD8wHQEovi" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-</div>
+<!-- VIDEO (PUT YOUR TOTTENHAM EDIT HERE) -->
+<video autoplay muted loop playsinline id="bgvid">
+  <source src="tottenham.mp4" type="video/mp4">
+</video>
 
 <div id="overlay"></div>
 <div id="flash"></div>
+
 <div class="center">
   <div class="name" id="name">CHEW</div>
   <div class="subtitle">VILLAIN GOALKEEPER</div>
 </div>
+
 <div class="auraText" id="auraText">INITIALIZING...</div>
 <div class="auraWrap"><div class="auraBar" id="aura"></div></div>
+
 <div class="enter" id="enter" onclick="enterSite()">ENTER</div>
-<audio id="music" src="music.mp3" preload="auto"></audio>
+
+<!-- AURA MUSIC -->
+<audio id="music" loop>
+  <source src="aura.mp3" type="audio/mp3">
+</audio>
 
 <script>
-for(let i=0;i<50;i++){
+// PARTICLES
+for(let i=0;i<60;i++){
   let p=document.createElement('div');
   p.className='particle';
   p.style.left=Math.random()*100+'vw';
@@ -51,6 +143,7 @@ for(let i=0;i<50;i++){
   document.body.appendChild(p);
 }
 
+// ELEMENTS
 let aura=0;
 let bar=document.getElementById('aura');
 let text=document.getElementById('auraText');
@@ -58,46 +151,63 @@ let enter=document.getElementById('enter');
 let nameEl=document.getElementById('name');
 let flash=document.getElementById('flash');
 let overlay=document.getElementById('overlay');
-enter.style.opacity = "0";
-enter.style.pointerEvents = "none";
+let music=document.getElementById('music');
 
-function cinematicIntro(){
-  setTimeout(()=>text.innerText="LOADING PRESENCE",1000);
-  setTimeout(()=>text.innerText="ENTERING STADIUM",3000);
-  setTimeout(()=>text.innerText="AURA BUILDING",5000);
-}
-cinematicIntro();
+// TEXT TIMELINE
+setTimeout(()=>text.innerText="LOADING PRESENCE",1000);
+setTimeout(()=>text.innerText="ENTERING STADIUM",3000);
+setTimeout(()=>text.innerText="AURA BUILDING",5000);
 
+// AURA BUILD
 let phase=0;
 let build=setInterval(()=>{
   aura += Math.random()*3+2;
   if(aura>100) aura=100;
+
   bar.style.width = aura + '%';
+
   let intensity = aura/100;
-  nameEl.style.transform = `scale(${1+intensity*0.1})`;
-  nameEl.style.textShadow = `0 0 ${20+intensity*60}px white`;
-  overlay.style.background=`radial-gradient(circle, rgba(0,0,0,${0.3-intensity*0.2}), rgba(0,0,0,0.95))`;
+  nameEl.style.transform = `scale(${1+intensity*0.12})`;
+  nameEl.style.textShadow = `0 0 ${20+intensity*80}px white`;
+
+  overlay.style.background=`radial-gradient(circle, rgba(0,0,0,${0.4-intensity*0.3}), rgba(0,0,0,0.95))`;
+
   if(aura>70 && phase===0){
     phase=1;
     text.innerText="DOMINATING...";
   }
+
   if(aura>95 && phase===1){
     phase=2;
     text.innerText="AURA MAXED";
-    enter.style.opacity="0.8";
+
+    enter.style.opacity="0.85";
     enter.style.pointerEvents="auto";
+
     flash.style.opacity="1";
     setTimeout(()=>flash.style.opacity="0",200);
-    document.getElementById('music').play();
+
+    // PLAY MUSIC (safe start)
+    music.volume = 0.6;
+    music.play().catch(()=>{});
+
     clearInterval(build);
   }
 },180);
 
+// ENTER
 function enterSite(){
+  // ensure music plays after click (browser safe)
+  music.play().catch(()=>{});
+
   document.body.style.transition="1.2s";
   document.body.style.opacity="0";
-  setTimeout(()=>{window.location.href="home.html";},1200);
+
+  setTimeout(()=>{
+    window.location.href="home.html";
+  },1200);
 }
 </script>
+
 </body>
 </html>
