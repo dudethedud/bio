@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEW</title>
+<title>CHEW | Aura Intro</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
 
@@ -20,6 +20,15 @@ body{overflow:hidden;background:black;color:white;}
   height:100%;
   object-fit:cover;
   z-index:-3;
+
+  /* cinematic upgrades */
+  filter:brightness(0.5) contrast(1.2) saturate(0.8);
+  animation:zoom 25s ease-in-out infinite alternate;
+}
+
+@keyframes zoom{
+  from{transform:scale(1);}
+  to{transform:scale(1.1);}
 }
 
 /* OVERLAY */
@@ -28,6 +37,7 @@ body{overflow:hidden;background:black;color:white;}
   width:100%;
   height:100%;
   background:radial-gradient(circle, rgba(0,0,0,0.4), rgba(0,0,0,0.95));
+  backdrop-filter:blur(2px);
   z-index:-2;
   transition:1s;
 }
@@ -40,18 +50,20 @@ body{overflow:hidden;background:black;color:white;}
   transform:translate(-50%,-50%);
   text-align:center;
 }
+
 .name{
   font-size:64px;
   letter-spacing:10px;
   font-weight:600;
-  text-shadow:0 0 20px rgba(255,255,255,0.15);
+  text-shadow:0 0 20px rgba(255,255,255,0.2);
   transition:0.3s;
 }
+
 .subtitle{
   margin-top:10px;
   font-size:12px;
   letter-spacing:4px;
-  opacity:0.5;
+  opacity:0.6;
 }
 
 /* AURA BAR */
@@ -64,11 +76,13 @@ body{overflow:hidden;background:black;color:white;}
   height:4px;
   background:rgba(255,255,255,0.1);
 }
+
 .auraBar{
   height:100%;
   width:0%;
   background:white;
 }
+
 .auraText{
   position:absolute;
   bottom:110px;
@@ -114,6 +128,7 @@ body{overflow:hidden;background:black;color:white;}
   opacity:0.25;
   animation:float linear infinite;
 }
+
 @keyframes float{
   from{transform:translateY(0);}
   to{transform:translateY(-120vh);}
@@ -123,9 +138,9 @@ body{overflow:hidden;background:black;color:white;}
 
 <body>
 
-<!-- VIDEO BACKGROUND -->
+<!-- VIDEO -->
 <video autoplay muted loop playsinline id="bgvid">
-  <source src="./bg.mp4" type="video/mp4">
+  <source src="bg.mp4" type="video/mp4">
 </video>
 
 <div id="overlay"></div>
@@ -137,6 +152,7 @@ body{overflow:hidden;background:black;color:white;}
 </div>
 
 <div class="auraText" id="auraText">INITIALIZING...</div>
+
 <div class="auraWrap">
   <div class="auraBar" id="aura"></div>
 </div>
@@ -145,12 +161,12 @@ body{overflow:hidden;background:black;color:white;}
 
 <!-- MUSIC -->
 <audio id="music" loop>
-  <source src="./aura.mp3" type="audio/mp3">
+  <source src="aura.mp3" type="audio/mp3">
 </audio>
 
 <script>
 // PARTICLES
-for(let i=0;i<60;i++){
+for(let i=0;i<70;i++){
   let p=document.createElement('div');
   p.className='particle';
   p.style.left=Math.random()*100+'vw';
@@ -174,8 +190,9 @@ setTimeout(()=>text.innerText="LOADING PRESENCE",1000);
 setTimeout(()=>text.innerText="ENTERING STADIUM",3000);
 setTimeout(()=>text.innerText="AURA BUILDING",5000);
 
-// AURA BUILD
+// AURA SYSTEM
 let phase=0;
+
 let build=setInterval(()=>{
   aura += Math.random()*3+2;
   if(aura>100) aura=100;
@@ -183,10 +200,12 @@ let build=setInterval(()=>{
   bar.style.width = aura + '%';
 
   let intensity = aura/100;
+
   nameEl.style.transform = `scale(${1+intensity*0.12})`;
   nameEl.style.textShadow = `0 0 ${20+intensity*80}px white`;
 
-  overlay.style.background=`radial-gradient(circle, rgba(0,0,0,${0.4-intensity*0.3}), rgba(0,0,0,0.95))`;
+  overlay.style.background =
+    `radial-gradient(circle, rgba(0,0,0,${0.4-intensity*0.3}), rgba(0,0,0,0.95))`;
 
   if(aura>70 && phase===0){
     phase=1;
@@ -205,13 +224,14 @@ let build=setInterval(()=>{
 
     clearInterval(build);
   }
+
 },180);
 
-// MUSIC (requires interaction)
+// MUSIC (user interaction required)
 document.addEventListener("click", () => {
   music.volume = 0.6;
   music.play().catch(()=>{});
-}, { once: true });
+}, { once:true });
 
 // ENTER
 function enterSite(){
@@ -219,7 +239,7 @@ function enterSite(){
   document.body.style.opacity="0";
 
   setTimeout(()=>{
-    window.location.href="./home.html";
+    window.location.href="home.html";
   },1200);
 }
 </script>
