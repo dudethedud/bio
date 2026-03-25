@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEW | Locked In</title>
+<title>CHEW | Presence</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
 
@@ -15,74 +15,82 @@ body{
   overflow:hidden;
 }
 
-/* animated gradient */
-.bg{
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:radial-gradient(circle at center, #111, black 70%);
-  z-index:-2;
-}
-
-/* moving light */
-.light{
-  position:absolute;
-  width:400px;
-  height:400px;
-  background:radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
-  border-radius:50%;
-  animation:move 8s infinite alternate ease-in-out;
-}
-@keyframes move{
-  from{transform:translate(20vw,30vh);}
-  to{transform:translate(60vw,60vh);}
-}
-
-/* container */
-.container{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-}
-
-/* name glitch */
-h1{
-  font-size:72px;
-  letter-spacing:12px;
+/* 3D SCENE */
+.scene{
+  perspective:1200px;
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
   position:relative;
 }
 
-h1::before, h1::after{
-  content:"CHEW";
-  position:absolute;
-  left:0;
+/* CAMERA */
+.camera{
   width:100%;
-  opacity:0.2;
+  height:100%;
+  transform-style:preserve-3d;
+  transition:transform 0.1s;
 }
 
-h1::before{
-  top:-2px;
-  color:red;
-  animation:glitch 1s infinite;
-}
-h1::after{
-  top:2px;
-  color:cyan;
-  animation:glitch 1s infinite reverse;
-}
-
-@keyframes glitch{
-  0%{transform:translate(0);}
-  20%{transform:translate(-2px,2px);}
-  40%{transform:translate(2px,-2px);}
-  60%{transform:translate(-1px,1px);}
-  80%{transform:translate(1px,-1px);}
-  100%{transform:translate(0);}
+/* GRID FLOOR */
+.grid{
+  position:absolute;
+  width:200%;
+  height:200%;
+  background:
+    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size:60px 60px;
+  transform:rotateX(75deg) translateZ(-200px);
+  opacity:0.25;
+  animation:moveGrid 6s linear infinite;
 }
 
-/* subtitle */
+@keyframes moveGrid{
+  from{background-position:0 0;}
+  to{background-position:0 60px;}
+}
+
+/* FOG LAYER */
+.fog{
+  position:absolute;
+  width:150%;
+  height:150%;
+  background:radial-gradient(circle, rgba(255,255,255,0.05), transparent 70%);
+  transform:translateZ(-300px);
+}
+
+/* PARTICLES (stars) */
+.star{
+  position:absolute;
+  width:2px;
+  height:2px;
+  background:white;
+  opacity:0.4;
+}
+
+/* MAIN UI */
+.ui{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) translateZ(200px);
+  text-align:center;
+}
+
+/* NAME */
+h1{
+  font-size:72px;
+  letter-spacing:12px;
+  text-shadow:0 0 30px rgba(255,255,255,0.3);
+  animation:pulse 3s infinite alternate;
+}
+
+@keyframes pulse{
+  from{ text-shadow:0 0 20px rgba(255,255,255,0.2); }
+  to{ text-shadow:0 0 70px rgba(255,255,255,0.8); }
+}
+
 .role{
   margin-top:10px;
   font-size:12px;
@@ -90,28 +98,29 @@ h1::after{
   opacity:0.6;
 }
 
-/* cards */
-.cards{
-  margin-top:50px;
+/* STATS */
+.stats{
+  margin-top:40px;
   display:flex;
-  gap:30px;
+  gap:40px;
   justify-content:center;
 }
 
-.card{
-  padding:20px 30px;
-  border:1px solid rgba(255,255,255,0.1);
-  backdrop-filter:blur(10px);
-  transition:0.3s;
+.stat{
+  text-align:center;
 }
-.card:hover{
-  transform:translateY(-5px);
-  border-color:white;
+.stat h2{
+  font-size:26px;
+}
+.stat span{
+  font-size:10px;
+  opacity:0.5;
+  letter-spacing:2px;
 }
 
-/* button */
+/* BUTTON */
 .btn{
-  margin-top:60px;
+  margin-top:50px;
   font-size:12px;
   letter-spacing:4px;
   opacity:0.5;
@@ -123,32 +132,70 @@ h1::after{
 
 <body>
 
-<div class="bg"></div>
-<div class="light"></div>
+<div class="scene">
+  <div class="camera" id="camera">
 
-<div class="container">
-  <h1>CHEW</h1>
-  <div class="role">VILLAIN GOALKEEPER</div>
+    <div class="grid"></div>
+    <div class="fog"></div>
 
-  <div class="cards">
-    <div class="card">
-      <h2>99</h2>
-      <p>REFLEXES</p>
+    <div class="ui">
+      <h1>CHEW</h1>
+      <div class="role">VILLAIN GOALKEEPER</div>
+
+      <div class="stats">
+        <div class="stat">
+          <h2>99</h2>
+          <span>REFLEXES</span>
+        </div>
+        <div class="stat">
+          <h2>100</h2>
+          <span>AURA</span>
+        </div>
+        <div class="stat">
+          <h2>CLUTCH</h2>
+          <span>MENTALITY</span>
+        </div>
+      </div>
+
+      <div class="btn" onclick="back()">RETURN</div>
     </div>
-    <div class="card">
-      <h2>100</h2>
-      <p>AURA</p>
-    </div>
-    <div class="card">
-      <h2>CLUTCH</h2>
-      <p>MENTALITY</p>
-    </div>
+
   </div>
-
-  <div class="btn" onclick="back()">RETURN</div>
 </div>
 
 <script>
+// STAR FIELD
+for(let i=0;i<120;i++){
+  let s=document.createElement('div');
+  s.className='star';
+  s.style.left=Math.random()*100+'vw';
+  s.style.top=Math.random()*100+'vh';
+  s.style.transform=`translateZ(${Math.random()*-500}px)`;
+  document.body.appendChild(s);
+}
+
+// CAMERA PARALLAX (mouse movement)
+const cam = document.getElementById("camera");
+
+document.addEventListener("mousemove", (e)=>{
+  let x = (e.clientX / window.innerWidth - 0.5) * 20;
+  let y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+  cam.style.transform = `
+    rotateY(${x}deg)
+    rotateX(${-y}deg)
+    translateZ(0)
+  `;
+});
+
+// FORWARD MOTION (feels like moving through space)
+let z = 0;
+setInterval(()=>{
+  z += 1;
+  cam.style.transform += ` translateZ(${z}px)`;
+},50);
+
+// BACK BUTTON
 function back(){
   document.body.style.opacity="0";
   setTimeout(()=>{
