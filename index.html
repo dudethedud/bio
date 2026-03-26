@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEW | Aura Intro</title>
+<title>CHEW | Entrance</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
 
@@ -11,35 +11,47 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 body{overflow:hidden;background:black;color:white;}
 
-/* VIDEO BACKGROUND */
+/* VIDEO */
 #bgvid{
   position:fixed;
-  top:0;
-  left:0;
   width:100%;
   height:100%;
   object-fit:cover;
-  z-index:-3;
-
-  /* cinematic upgrades */
-  filter:brightness(0.5) contrast(1.2) saturate(0.8);
-  animation:zoom 25s ease-in-out infinite alternate;
+  z-index:-4;
+  filter:brightness(0.45) contrast(1.2);
+  animation:zoom 20s ease-in-out infinite alternate, flicker 6s infinite;
 }
 
 @keyframes zoom{
   from{transform:scale(1);}
   to{transform:scale(1.1);}
 }
+@keyframes flicker{
+  0%,100%{opacity:1;}
+  50%{opacity:0.85;}
+}
 
-/* OVERLAY */
-#overlay{
+/* DARK + RED OVERLAY */
+.overlay{
   position:fixed;
   width:100%;
   height:100%;
-  background:radial-gradient(circle, rgba(0,0,0,0.4), rgba(0,0,0,0.95));
-  backdrop-filter:blur(2px);
-  z-index:-2;
+  background:
+    radial-gradient(circle, rgba(255,0,0,0.08), transparent),
+    radial-gradient(circle, rgba(0,0,0,0.4), rgba(0,0,0,0.95));
+  z-index:-3;
   transition:1s;
+}
+
+/* VIGNETTE */
+body::after{
+  content:'';
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:radial-gradient(circle, transparent 40%, rgba(0,0,0,0.9));
+  pointer-events:none;
+  z-index:-2;
 }
 
 /* CENTER */
@@ -52,22 +64,34 @@ body{overflow:hidden;background:black;color:white;}
 }
 
 .name{
-  font-size:64px;
-  letter-spacing:10px;
+  font-size:70px;
+  letter-spacing:12px;
   font-weight:600;
-  text-shadow:0 0 20px rgba(255,255,255,0.2);
-  transition:0.3s;
+  opacity:0;
+  transform:scale(0.8);
+}
+
+/* GLITCH */
+.glitch{
+  animation:glitch 0.4s linear 2;
+}
+@keyframes glitch{
+  0%{transform:translate(0);}
+  25%{transform:translate(-3px,2px);}
+  50%{transform:translate(3px,-2px);}
+  75%{transform:translate(-2px,1px);}
+  100%{transform:translate(0);}
 }
 
 .subtitle{
   margin-top:10px;
   font-size:12px;
   letter-spacing:4px;
-  opacity:0.6;
+  opacity:0;
 }
 
 /* AURA BAR */
-.auraWrap{
+.barWrap{
   position:absolute;
   bottom:90px;
   left:50%;
@@ -76,14 +100,13 @@ body{overflow:hidden;background:black;color:white;}
   height:4px;
   background:rgba(255,255,255,0.1);
 }
-
-.auraBar{
+.bar{
   height:100%;
   width:0%;
-  background:white;
+  background:red;
 }
 
-.auraText{
+.status{
   position:absolute;
   bottom:110px;
   left:50%;
@@ -105,18 +128,24 @@ body{overflow:hidden;background:black;color:white;}
   cursor:pointer;
   transition:0.4s;
 }
-.enter:hover{opacity:1;}
 
 /* FLASH */
-#flash{
+.flash{
   position:fixed;
   width:100%;
   height:100%;
   background:white;
   opacity:0;
-  pointer-events:none;
   z-index:5;
-  transition:0.2s;
+}
+
+/* SHAKE */
+@keyframes shake{
+  0%{transform:translate(0);}
+  25%{transform:translate(-6px,3px);}
+  50%{transform:translate(6px,-3px);}
+  75%{transform:translate(-3px,2px);}
+  100%{transform:translate(0);}
 }
 
 /* PARTICLES */
@@ -125,10 +154,9 @@ body{overflow:hidden;background:black;color:white;}
   width:2px;
   height:2px;
   background:white;
-  opacity:0.25;
+  opacity:0.2;
   animation:float linear infinite;
 }
-
 @keyframes float{
   from{transform:translateY(0);}
   to{transform:translateY(-120vh);}
@@ -138,35 +166,33 @@ body{overflow:hidden;background:black;color:white;}
 
 <body>
 
-<!-- VIDEO -->
 <video autoplay muted loop playsinline id="bgvid">
-  <source src="bg.mp4" type="video/mp4">
+  <source src="./bg.mp4" type="video/mp4">
 </video>
 
-<div id="overlay"></div>
-<div id="flash"></div>
+<div class="overlay" id="overlay"></div>
+<div class="flash" id="flash"></div>
 
 <div class="center">
   <div class="name" id="name">CHEW</div>
-  <div class="subtitle">VILLAIN GOALKEEPER</div>
+  <div class="subtitle" id="sub">VILLAIN GOALKEEPER</div>
 </div>
 
-<div class="auraText" id="auraText">INITIALIZING...</div>
+<div class="status" id="status">INITIALIZING...</div>
 
-<div class="auraWrap">
-  <div class="auraBar" id="aura"></div>
+<div class="barWrap">
+  <div class="bar" id="bar"></div>
 </div>
 
-<div class="enter" id="enter" onclick="enterSite()">ENTER</div>
+<div class="enter" id="enter" onclick="enter()">ENTER</div>
 
-<!-- MUSIC -->
 <audio id="music" loop>
-  <source src="aura.mp3" type="audio/mp3">
+  <source src="./aura.mp3" type="audio/mp3">
 </audio>
 
 <script>
 // PARTICLES
-for(let i=0;i<70;i++){
+for(let i=0;i<80;i++){
   let p=document.createElement('div');
   p.className='particle';
   p.style.left=Math.random()*100+'vw';
@@ -175,66 +201,66 @@ for(let i=0;i<70;i++){
   document.body.appendChild(p);
 }
 
-// ELEMENTS
 let aura=0;
-let bar=document.getElementById('aura');
-let text=document.getElementById('auraText');
-let enter=document.getElementById('enter');
-let nameEl=document.getElementById('name');
+let bar=document.getElementById('bar');
+let status=document.getElementById('status');
+let enterBtn=document.getElementById('enter');
+let name=document.getElementById('name');
+let sub=document.getElementById('sub');
 let flash=document.getElementById('flash');
-let overlay=document.getElementById('overlay');
 let music=document.getElementById('music');
 
 // TEXT TIMELINE
-setTimeout(()=>text.innerText="LOADING PRESENCE",1000);
-setTimeout(()=>text.innerText="ENTERING STADIUM",3000);
-setTimeout(()=>text.innerText="AURA BUILDING",5000);
+setTimeout(()=>status.innerText="ENTERING STADIUM",1500);
+setTimeout(()=>status.innerText="LOCKING TARGET",3500);
+setTimeout(()=>status.innerText="AURA BUILDING",5500);
 
-// AURA SYSTEM
-let phase=0;
+// REVEAL NAME
+setTimeout(()=>{
+  name.style.opacity=1;
+  name.style.transform="scale(1)";
+  name.classList.add("glitch");
+  sub.style.opacity=0.7;
+},2000);
 
+// BUILD AURA
 let build=setInterval(()=>{
   aura += Math.random()*3+2;
   if(aura>100) aura=100;
 
-  bar.style.width = aura + '%';
+  bar.style.width = aura + "%";
 
   let intensity = aura/100;
+  name.style.textShadow = `0 0 ${20+intensity*80}px red`;
 
-  nameEl.style.transform = `scale(${1+intensity*0.12})`;
-  nameEl.style.textShadow = `0 0 ${20+intensity*80}px white`;
-
-  overlay.style.background =
-    `radial-gradient(circle, rgba(0,0,0,${0.4-intensity*0.3}), rgba(0,0,0,0.95))`;
-
-  if(aura>70 && phase===0){
-    phase=1;
-    text.innerText="DOMINATING...";
+  if(aura>70){
+    status.innerText="DOMINATING...";
   }
 
-  if(aura>95 && phase===1){
-    phase=2;
-    text.innerText="AURA MAXED";
+  if(aura>95){
+    status.innerText="AURA MAXED";
 
-    enter.style.opacity="0.85";
-    enter.style.pointerEvents="auto";
+    enterBtn.style.opacity=1;
 
-    flash.style.opacity="1";
-    setTimeout(()=>flash.style.opacity="0",200);
+    flash.style.opacity=1;
+    setTimeout(()=>flash.style.opacity=0,200);
+
+    document.body.style.animation="shake 0.3s";
+    setTimeout(()=>document.body.style.animation="",300);
 
     clearInterval(build);
   }
 
 },180);
 
-// MUSIC (user interaction required)
-document.addEventListener("click", () => {
-  music.volume = 0.6;
+// MUSIC START
+document.addEventListener("click", ()=>{
+  music.volume=0.6;
   music.play().catch(()=>{});
-}, { once:true });
+}, {once:true});
 
 // ENTER
-function enterSite(){
+function enter(){
   document.body.style.transition="1.2s";
   document.body.style.opacity="0";
 
