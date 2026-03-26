@@ -1,118 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEW | Motion</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
-body{
-  background:black;
-  overflow:hidden;
-  color:white;
-}
-
-/* SCENE */
-.scene{
-  perspective:1000px;
-  width:100vw;
-  height:100vh;
-  overflow:hidden;
-}
-
-/* CAMERA */
-.camera{
-  position:relative;
-  width:100%;
-  height:100%;
-  transform-style:preserve-3d;
-}
-
-/* TUNNEL LAYERS */
-.layer{
-  position:absolute;
-  width:100vw;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-/* GRID */
-.grid{
-  width:200%;
-  height:200%;
-  background:
-    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size:80px 80px;
-  transform:rotateX(75deg);
-  opacity:0.25;
-}
-
-/* STARS */
-.star{
-  position:absolute;
-  width:2px;
-  height:2px;
-  background:white;
-  opacity:0.4;
-}
-
-/* UI */
-.ui{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-  z-index:10;
-}
-
-h1{
-  font-size:72px;
-  letter-spacing:10px;
-  text-shadow:0 0 40px rgba(255,255,255,0.5);
-}
-
-.role{
-  margin-top:10px;
-  font-size:12px;
-  letter-spacing:5px;
-  opacity:0.6;
-}
-
-.btn{
-  margin-top:40px;
-  font-size:12px;
-  letter-spacing:4px;
-  opacity:0.5;
-  cursor:pointer;
-}
-.btn:hover{opacity:1;}
-</style>
-</head>
-
-<body>
-
-<div class="scene">
-  <div class="camera" id="camera"></div>
-
-  <div class="ui">
-    <h1>CHEW</h1>
-    <div class="role">VILLAIN GOALKEEPER</div>
-    <div class="btn" onclick="back()">RETURN</div>
-  </div>
-</div>
-
 <script>
-// CREATE DEPTH LAYERS
 const cam = document.getElementById("camera");
 let layers = [];
+let speed = 6;
+let targetSpeed = 6;
 
+/* CREATE DEPTH LAYERS */
 for(let i=0;i<20;i++){
   let layer = document.createElement("div");
   layer.className = "layer";
@@ -129,49 +21,102 @@ for(let i=0;i<20;i++){
   layers.push(layer);
 }
 
-// STARS
+/* STARS (3D PARALLAX) */
+let stars=[];
 for(let i=0;i<150;i++){
   let s=document.createElement('div');
   s.className='star';
-  s.style.left=Math.random()*100+'vw';
-  s.style.top=Math.random()*100+'vh';
+  s.dataset.z = -Math.random()*2000;
   document.body.appendChild(s);
+  stars.push(s);
 }
 
-// FORWARD MOTION
+function moveStars(){
+  stars.forEach(s=>{
+    let z=parseFloat(s.dataset.z);
+    z+=2;
+    if(z>200) z=-2000;
+    s.dataset.z=z;
+    s.style.transform=`translateZ(${z}px)`;
+  });
+  requestAnimationFrame(moveStars);
+}
+moveStars();
+
+/* MAIN ANIMATION */
 function animate(){
+  speed += (targetSpeed - speed) * 0.05;
+
   layers.forEach(layer=>{
     let z = parseFloat(layer.dataset.z);
-    z += 6;
+    z += speed;
 
     if(z > 200){
-      z = -4000; // recycle far back
+      z = -4000;
     }
 
     layer.dataset.z = z;
+
+    let opacity = 1 - Math.abs(z)/4000;
 
     layer.style.transform = `
       translateZ(${z}px)
       rotateX(75deg)
     `;
+    layer.style.opacity = opacity;
   });
 
   requestAnimationFrame(animate);
 }
 animate();
 
-// MOUSE SWAY
+/* MOUSE CONTROL + SPEED BOOST */
 document.addEventListener("mousemove", (e)=>{
-  let x = (e.clientX/window.innerWidth - 0.5) * 10;
-  let y = (e.clientY/window.innerHeight - 0.5) * 10;
+  let x = (e.clientX/window.innerWidth - 0.5);
+  let y = (e.clientY/window.innerHeight - 0.5);
 
   cam.style.transform = `
-    rotateY(${x}deg)
-    rotateX(${-y}deg)
+    rotateY(${x*15}deg)
+    rotateX(${-y*10}deg)
   `;
+
+  targetSpeed = 6 + Math.abs(x)*10;
 });
 
-// RETURN
+/* SOCCER BALLS (3D FLOATING) */
+for(let i=0;i<15;i++){
+  let ball=document.createElement("div");
+  ball.style.position="absolute";
+  ball.style.width="30px";
+  ball.style.height="30px";
+  ball.style.background="url('https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg') center/contain no-repeat";
+
+  ball.dataset.z = -Math.random()*4000;
+  ball.style.left=Math.random()*100+"vw";
+  ball.style.top=Math.random()*100+"vh";
+
+  cam.appendChild(ball);
+
+  function moveBall(){
+    let z = parseFloat(ball.dataset.z);
+    z += 8;
+
+    if(z > 200){
+      z = -4000;
+      ball.style.left=Math.random()*100+"vw";
+      ball.style.top=Math.random()*100+"vh";
+    }
+
+    ball.dataset.z = z;
+    ball.style.transform = `translateZ(${z}px)`;
+
+    requestAnimationFrame(moveBall);
+  }
+
+  moveBall();
+}
+
+/* RETURN */
 function back(){
   document.body.style.opacity="0";
   setTimeout(()=>{
@@ -179,6 +124,3 @@ function back(){
   },800);
 }
 </script>
-
-</body>
-</html>
