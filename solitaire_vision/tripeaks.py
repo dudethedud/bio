@@ -26,6 +26,43 @@ def split_foundation(cards, frame_height, bottom_frac=0.25):
 
 
 def playable(foundation, tableau):
+    """Free, face-up tableau cards whose rank is adjacent to the foundation."""
     if foundation is None or foundation.rank is None:
         return []
-    return [c for c in tableau if c.face_up and c.rank and adjacent(c.rank, foundation.rank)]
+    return [c for c in tableau
+            if c.face_up and c.free and c.rank and adjacent(c.rank, foundation.rank)]
+
+
+def best_move(foundation, tableau):
+    """Pick the playable card that uncovers the most other cards.
+
+    A card is 'worth more' if removing it frees cards currently blocked only
+    by it. This is a shallow, one-ply heuristic -- it doesn't search deep
+    chains -- but it beats picking an arbitrary legal move.
+    """
+    moves = playable(foundation, tableau)
+    if not moves:
+        return None
+
+    def unlocks(card):
+        count = 0
+        for other in tableau:
+            if other.free or other is card:
+                continue
+            # Would 'other' become free if only 'card' were removed? Check that
+            # 'card' is the one covering it and nothing else does.
+            covering = [c for c in tableau if c is not other and _covers(c, other)]
+            if covering == [card]:
+                count += 1
+        return count
+
+    # Prefer the move that frees the most cards; break ties by lower card
+    # (clearing low cards early tends to keep streaks going).
+    return max(moves, key=lambda c: (unlocks(c), -RANKS.index(c.rank)))
+
+
+def _covers(top, bottom):
+    if not (bottom.y < top.y < bottom.y + bottom.h):
+        return False
+    overlap_x = min(bottom.x + bottom.w, top.x + top.w) - max(bottom.x, top.x)
+    return overlap_x > 0.35 * min(bottom.w, top.w)

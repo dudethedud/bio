@@ -22,6 +22,7 @@ class Card:
     w: int
     h: int
     face_up: bool = True
+    free: bool = True  # not covered by another card -> can be played/flipped
     rank: str | None = None
     suit: str | None = None
     score: float = 0.0
@@ -54,6 +55,8 @@ class DetectConfig:
     # Fraction of the card (width, height) used as the rank/suit corner.
     corner_w: float = 0.30
     corner_h: float = 0.38
+    # Horizontal overlap (fraction of the narrower card) that counts as "covered".
+    cover_overlap: float = 0.35
 
 
 def _mask_white(hsv, cfg):
@@ -101,4 +104,31 @@ def find_cards(frame, cfg=None):
 
     # Top-to-bottom, left-to-right: stable ordering for printing / diffing.
     cards.sort(key=lambda c: (c.y // max(1, c.h // 3), c.x))
+    mark_coverage(cards, cfg)
+    return cards
+
+
+def mark_coverage(cards, cfg=None):
+    """Set card.free for each card.
+
+    In a TriPeaks-style layout, a card that sits lower on screen and overlaps
+    the bottom of another card is drawn in front of it, so the upper card is
+    covered and cannot be played until the lower one is removed. We flag a
+    card as not free when another card starts below its top edge, still within
+    its vertical span, and overlaps it horizontally.
+    """
+    cfg = cfg or DetectConfig()
+    for a in cards:
+        a.free = True
+    for a in cards:
+        for b in cards:
+            if b is a:
+                continue
+            # b must start lower than a (drawn in front) but still overlap a.
+            if not (a.y < b.y < a.y + a.h):
+                continue
+            overlap_x = min(a.x + a.w, b.x + b.w) - max(a.x, b.x)
+            if overlap_x > cfg.cover_overlap * min(a.w, b.w):
+                a.free = False
+                break
     return cards

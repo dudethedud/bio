@@ -8,7 +8,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from solitaire_vision import DetectConfig, TemplateSet, find_cards, playable, split_foundation  # noqa: E402
+from solitaire_vision import (DetectConfig, TemplateSet, best_move, find_cards,  # noqa: E402
+                              mark_coverage, playable, split_foundation)
 from solitaire_vision.identify import save_template, split_corner  # noqa: E402
 
 CARD_W, CARD_H = 70, 100
@@ -77,3 +78,35 @@ def test_wraparound():
     from solitaire_vision import adjacent
     assert adjacent("K", "A") and adjacent("A", "K") and adjacent("10", "J")
     assert not adjacent("5", "5") and not adjacent("2", "4")
+
+
+def test_coverage_blocks_playable():
+    # The front card (lower on screen) covers the one behind it (higher up).
+    # foundation = A, so a free 2 is playable but a *covered* 2 is not.
+    from solitaire_vision import Card
+    found = Card(200, 500, 70, 100, rank="A", suit="C")
+    behind = Card(100, 60, 70, 100, rank="2", suit="S")   # upper, gets covered
+    front = Card(104, 110, 70, 100, rank="9", suit="D")   # lower, in front
+    free_two = Card(300, 60, 70, 100, rank="2", suit="H")  # nothing on top of it
+    cards = [found, behind, front, free_two]
+    mark_coverage(cards)
+
+    assert front.free and free_two.free
+    assert not behind.free                 # covered by the 9 in front of it
+
+    moves = playable(found, [behind, front, free_two])
+    assert free_two in moves               # free 2 is a legal play onto the A
+    assert behind not in moves             # covered 2 is excluded
+
+
+def test_best_move_prefers_uncovering():
+    # Two legal moves; one frees a card behind it, the other frees nothing.
+    from solitaire_vision import Card
+    found = Card(0, 500, 70, 100, rank="5", suit="S")
+    behind = Card(100, 60, 70, 100, rank="9", suit="C")    # hidden, freed by `front`
+    front = Card(104, 110, 70, 100, rank="6", suit="D")    # free, adjacent to 5
+    lonely = Card(300, 110, 70, 100, rank="4", suit="H")   # free, adjacent, frees nothing
+    tableau = [behind, front, lonely]
+    mark_coverage([found] + tableau)
+    assert front.free and lonely.free and not behind.free
+    assert best_move(found, tableau) is front

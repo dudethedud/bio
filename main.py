@@ -11,7 +11,8 @@ import time
 
 import cv2
 
-from solitaire_vision import DetectConfig, TemplateSet, find_cards, playable, split_foundation
+from solitaire_vision import (DetectConfig, TemplateSet, best_move, find_cards,
+                              playable, split_foundation)
 from solitaire_vision.capture import grab_screen, load_image
 from solitaire_vision.identify import save_template, split_corner
 
@@ -35,33 +36,42 @@ def analyse(frame, cfg, templates):
         for c in cards:
             templates.identify(c)
     foundation, tableau = split_foundation(cards, frame.shape[0])
-    return cards, foundation, playable(foundation, tableau)
+    moves = playable(foundation, tableau)
+    return cards, foundation, moves, best_move(foundation, tableau)
 
 
-def annotate(frame, cards, foundation, moves):
+def annotate(frame, cards, foundation, moves, pick):
     out = frame.copy()
     move_ids = {id(c) for c in moves}
     for c in cards:
         if c is foundation:
-            color = (255, 128, 0)
+            color = (255, 128, 0)        # blue  = foundation / waste
+        elif c is pick:
+            color = (0, 255, 0)          # bright green = recommended move
         elif id(c) in move_ids:
-            color = (0, 200, 0)
+            color = (0, 170, 90)         # dim green = other legal move
         elif c.face_up:
-            color = (0, 200, 255)
+            color = (0, 200, 255) if c.free else (120, 120, 200)  # yellow free / dim covered
         else:
-            color = (128, 128, 128)
-        cv2.rectangle(out, (c.x, c.y), (c.x + c.w, c.y + c.h), color, 2)
+            color = (128, 128, 128)      # grey = face-down
+        thick = 4 if c is pick else 2
+        cv2.rectangle(out, (c.x, c.y), (c.x + c.w, c.y + c.h), color, thick)
         cv2.putText(out, c.label, (c.x + 2, c.y - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
     return out
 
 
-def report(cards, foundation, moves):
+def report(cards, foundation, moves, pick):
     up = [c for c in cards if c.face_up]
     print(f"cards: {len(cards)} ({len(up)} face up, {len(cards) - len(up)} face down)")
     for c in up:
-        print(f"  {c.label:>4} at {c.center}  match={c.score:.2f}")
+        state = "free" if c.free else "covered"
+        print(f"  {c.label:>4} at {c.center}  match={c.score:.2f}  {state}")
     print(f"foundation: {foundation.label if foundation else 'not found'}")
     print("playable: " + (", ".join(f"{c.label}@{c.center}" for c in moves) or "none"))
+    if pick:
+        print(f"==> best move: play {pick.label} at {pick.center}")
+    elif foundation:
+        print("==> no legal move - draw from the deck (or use a wild)")
 
 
 def cmd_detect(args):
@@ -69,10 +79,10 @@ def cmd_detect(args):
     templates = TemplateSet(args.templates)
     if not templates:
         print(f"(no templates in {args.templates}/ - run `label` first; showing boxes only)")
-    cards, foundation, moves = analyse(frame, make_config(args), templates)
-    report(cards, foundation, moves)
+    cards, foundation, moves, pick = analyse(frame, make_config(args), templates)
+    report(cards, foundation, moves, pick)
     if args.out:
-        cv2.imwrite(args.out, annotate(frame, cards, foundation, moves))
+        cv2.imwrite(args.out, annotate(frame, cards, foundation, moves, pick))
         print(f"annotated image written to {args.out}")
 
 
@@ -99,11 +109,11 @@ def cmd_watch(args):
     cfg = make_config(args)
     last = None
     while True:
-        cards, foundation, moves = analyse(get_frame(args), cfg, templates)
+        cards, foundation, moves, pick = analyse(get_frame(args), cfg, templates)
         state = (tuple(c.label for c in cards), foundation.label if foundation else None)
         if state != last:
             print("-" * 40)
-            report(cards, foundation, moves)
+            report(cards, foundation, moves, pick)
             last = state
         time.sleep(args.interval)
 
