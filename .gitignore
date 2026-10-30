@@ -1,0 +1,4 @@
+templates/
+card_*.png
+__pycache__/
+.pytest_cache/

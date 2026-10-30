@@ -1,0 +1,31 @@
+"""Step 3: interpret the recognised board.
+
+Disney Solitaire plays like TriPeaks: a face-up tableau card can go onto the
+foundation (the card next to the draw pile) if its rank is one above or below
+it, with King and Ace wrapping around.
+"""
+
+RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+
+
+def adjacent(a, b):
+    if a not in RANKS or b not in RANKS:
+        return False
+    d = abs(RANKS.index(a) - RANKS.index(b))
+    return d in (1, len(RANKS) - 1)
+
+
+def split_foundation(cards, frame_height, bottom_frac=0.25):
+    """Guess which card is the foundation: the lowest face-up card in the
+    bottom strip of the screen. Returns (foundation, tableau)."""
+    bottom = [c for c in cards if c.face_up and c.y > frame_height * (1 - bottom_frac)]
+    if not bottom:
+        return None, cards
+    foundation = max(bottom, key=lambda c: (c.y, c.x))
+    return foundation, [c for c in cards if c is not foundation]
+
+
+def playable(foundation, tableau):
+    if foundation is None or foundation.rank is None:
+        return []
+    return [c for c in tableau if c.face_up and c.rank and adjacent(c.rank, foundation.rank)]
