@@ -52,11 +52,19 @@ class DetectConfig:
     max_area_frac: float = 0.08
     aspect_min: float = 0.55
     aspect_max: float = 0.85
+    # Morphology kernel (odd px). Big enough to erase thin white card borders
+    # so face-down backs don't merge into face-up faces.
+    open_kernel: int = 9
+    # How far a back mask is grown before being cut out of the white mask.
+    back_dilate: int = 25
     # Fraction of the card (width, height) used as the rank/suit corner.
     corner_w: float = 0.30
     corner_h: float = 0.38
     # Horizontal overlap (fraction of the narrower card) that counts as "covered".
     cover_overlap: float = 0.35
+    # A covering card may start up to this * card height below the covered card's
+    # top (white faces leave a gap, so we look a little past the box bottom).
+    cover_vspan: float = 1.25
 
 
 def _mask_white(hsv, cfg):
@@ -66,7 +74,8 @@ def _mask_white(hsv, cfg):
 
 
 def _boxes_from_mask(mask, frame_area, cfg, allow_partial=False):
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    k = max(1, cfg.open_kernel | 1)  # force odd
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k, k))
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     boxes = []
@@ -90,15 +99,24 @@ def find_cards(frame, cfg=None):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     area = frame.shape[0] * frame.shape[1]
 
+    white = _mask_white(hsv, cfg)
+    back = None
+    if cfg.back_lower is not None and cfg.back_upper is not None:
+        back = cv2.inRange(hsv, np.array(cfg.back_lower, np.uint8),
+                           np.array(cfg.back_upper, np.uint8))
+        # Card backs have white borders; grow the back mask and cut it out of
+        # the white mask so those borders don't merge into face-up cards.
+        d = max(1, cfg.back_dilate)
+        grown = cv2.dilate(back, cv2.getStructuringElement(cv2.MORPH_RECT, (d, d)))
+        white = cv2.bitwise_and(white, cv2.bitwise_not(grown))
+
     cards = []
-    for x, y, w, h in _boxes_from_mask(_mask_white(hsv, cfg), area, cfg):
+    for x, y, w, h in _boxes_from_mask(white, area, cfg):
         cw, ch = max(1, int(w * cfg.corner_w)), max(1, int(h * cfg.corner_h))
         corner = frame[y:y + ch, x:x + cw].copy()
         cards.append(Card(x, y, w, h, face_up=True, corner=corner))
 
-    if cfg.back_lower is not None and cfg.back_upper is not None:
-        back = cv2.inRange(hsv, np.array(cfg.back_lower, np.uint8),
-                           np.array(cfg.back_upper, np.uint8))
+    if back is not None:
         for x, y, w, h in _boxes_from_mask(back, area, cfg, allow_partial=True):
             cards.append(Card(x, y, w, h, face_up=False))
 
@@ -122,10 +140,11 @@ def mark_coverage(cards, cfg=None):
         a.free = True
     for a in cards:
         for b in cards:
-            if b is a:
-                continue
-            # b must start lower than a (drawn in front) but still overlap a.
-            if not (a.y < b.y < a.y + a.h):
+            if b is a or not b.face_up:
+                continue  # a face-down back sits behind, it never covers
+            # b is drawn in front if it starts below a's top, within a span a
+            # little past a's bottom edge (white faces leave a gap between cards).
+            if not (a.y + 0.05 * a.h < b.y < a.y + cfg.cover_vspan * a.h):
                 continue
             overlap_x = min(a.x + a.w, b.x + b.w) - max(a.x, b.x)
             if overlap_x > cfg.cover_overlap * min(a.w, b.w):

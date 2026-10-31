@@ -61,8 +61,11 @@ def best_move(foundation, tableau):
     return max(moves, key=lambda c: (unlocks(c), -RANKS.index(c.rank)))
 
 
-def _covers(top, bottom):
-    if not (bottom.y < top.y < bottom.y + bottom.h):
+def _covers(top, bottom, vspan=1.25, overlap=0.35):
+    """True if `top` is drawn in front of `bottom` (same rule as mark_coverage)."""
+    if not top.face_up:
+        return False
+    if not (bottom.y + 0.05 * bottom.h < top.y < bottom.y + vspan * bottom.h):
         return False
     overlap_x = min(bottom.x + bottom.w, top.x + top.w) - max(bottom.x, top.x)
-    return overlap_x > 0.35 * min(bottom.w, top.w)
+    return overlap_x > overlap * min(bottom.w, top.w)

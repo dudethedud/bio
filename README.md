@@ -23,27 +23,47 @@ send any input.
    - Crop each glyph to its ink, resize it to 32×40 with a blank border, and
      compare it with labelled templates using normalised cross-correlation.
    - Count red ink against black ink to narrow the suit match to ♥♦ or ♠♣.
-4. **Interpret** (`solitaire_vision/tripeaks.py`): the lowest face-up card
-   at the bottom of the screen is taken as the foundation. A tableau card is
-   playable if its rank is ±1 from the foundation (K↔A wraps).
+4. **Coverage** (`solitaire_vision/detect.py`, `mark_coverage`): a card is
+   only playable if nothing is drawn in front of it. Each card is marked
+   `free` or covered from the overlap geometry; face-down backs behind a card
+   don't count as covering it.
+5. **Interpret** (`solitaire_vision/tripeaks.py`): the lowest face-up card at
+   the bottom of the screen is taken as the foundation (waste pile). A *free*
+   tableau card is playable if its rank is ±1 from the foundation (K↔A wraps).
+   `best_move()` then recommends the legal play that uncovers the most cards.
 
 ## Usage
 
 ```bash
 pip install -r requirements.txt
 
-# 1. Take a screenshot of the game and teach it the glyphs (once per deck style)
-python main.py label --image shot.png          # type e.g. QH, 10S, AD for each card
+# Recognise a screenshot with the bundled Disney deck templates + card-back colour
+python main.py detect --image shot.png \
+    --templates example_templates/disney \
+    --back-hsv 95 120 120 125 255 255 \
+    --out annotated.png
 
-# 2. Recognise a screenshot and save an annotated copy
-python main.py detect --image shot.png --out annotated.png
+# Live: watch a screen region (left top width height) and print the best move
+python main.py watch --region 0 0 1080 1920 --interval 1 \
+    --templates example_templates/disney --back-hsv 95 120 120 125 255 255
 
-# 3. Live: watch a screen region (left top width height) and print changes
-python main.py watch --region 0 0 1080 1920 --interval 1
+# Teach it glyphs it doesn't know yet (see "Templates" below)
+python main.py label --image shot.png --templates example_templates/disney
 ```
 
-Colours in the annotated image: blue = foundation, green = playable,
-yellow = other face-up cards, grey = face-down cards.
+Colours in the annotated image: **blue** = foundation/waste,
+**bright green** = recommended move, **dim green** = other legal move,
+**yellow** = free face-up card, **dim** = covered face-up card,
+**grey** = face-down card.
+
+### Templates
+
+`example_templates/disney/` ships with glyphs trained from a real level-51
+board, covering ranks **A, 2, 5, 6, 8, 10, Q** and all four suits. The ranks
+**3, 4, 7, 9, J, K** aren't in there yet — when you hit a board with one,
+run `label` on a screenshot of it and type the card (e.g. `7H`, `KD`) to add
+it. More samples per card only improves accuracy. The `--back-hsv` preset
+above matches the blue Mickey card back; change it if you use another deck.
 
 ## Tuning
 
