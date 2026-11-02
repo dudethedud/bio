@@ -43,8 +43,11 @@ python main.py detect --image shot.png \
     --back-hsv 95 120 120 125 255 255 \
     --out annotated.png
 
-# Live: watch a screen region (left top width height) and print the best move
-python main.py watch --region 0 0 1080 1920 --interval 1 \
+# Pick the game window once by dragging a box over it (saves to region.json)
+python main.py pick
+
+# Live: watch that region and print the best move whenever the board changes
+python main.py watch --interval 1 \
     --templates example_templates/disney --back-hsv 95 120 120 125 255 255
 
 # Teach it glyphs it doesn't know yet (see "Templates" below)
@@ -64,6 +67,15 @@ board, covering ranks **A, 2, 5, 6, 8, 10, Q** and all four suits. The ranks
 run `label` on a screenshot of it and type the card (e.g. `7H`, `KD`) to add
 it. More samples per card only improves accuracy. The `--back-hsv` preset
 above matches the blue Mickey card back; change it if you use another deck.
+
+### Picking the capture region
+
+For live play on an iPad, mirror the iPad to the computer first (QuickTime
+"New Movie Recording" on a Mac, or an AirPlay receiver app), so the game shows
+in a window. Then run `python main.py pick`: the screen freezes, you drag a box
+over the mirror window, and press **ENTER**. The box is saved to `region.json`,
+and `detect`/`watch` use it automatically (override any time with
+`--region LEFT TOP W H`, or point at another file with `--region-file`).
 
 ## Tuning
 

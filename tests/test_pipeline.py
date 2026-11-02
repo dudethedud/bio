@@ -110,3 +110,19 @@ def test_best_move_prefers_uncovering():
     mark_coverage([found] + tableau)
     assert front.free and lonely.free and not behind.free
     assert best_move(found, tableau) is front
+
+
+def test_scale_roi_maps_preview_to_screen():
+    from solitaire_vision.capture import scale_roi
+    # Preview shrunk to half size, monitor offset (100, 50).
+    # A box at (20,30,40,60) in the preview -> doubled and shifted on screen.
+    assert scale_roi((20, 30, 40, 60), 0.5, (100, 50)) == (140, 110, 80, 120)
+    # No scaling, no offset -> unchanged.
+    assert scale_roi((5, 6, 7, 8), 1.0) == (5, 6, 7, 8)
+
+
+def test_region_round_trip(tmp_path):
+    from solitaire_vision.capture import save_region, load_region
+    path = tmp_path / "region.json"
+    save_region(path, (10, 20, 300, 400))
+    assert load_region(path) == (10, 20, 300, 400)

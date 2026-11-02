@@ -1,26 +1,39 @@
 """Disney Solitaire screen recognition - command line entry point.
 
+    python main.py pick                            # drag a box over the game, save it
     python main.py detect --image shot.png --out annotated.png
-    python main.py detect --screen --region 0 0 1080 1920
+    python main.py detect --screen                 # uses the saved region
     python main.py label  --image shot.png
-    python main.py watch  --region 0 0 1080 1920 --interval 1
+    python main.py watch  --interval 1             # live, uses the saved region
 """
 
 import argparse
+import os
 import time
 
 import cv2
 
 from solitaire_vision import (DetectConfig, TemplateSet, best_move, find_cards,
                               playable, split_foundation)
-from solitaire_vision.capture import grab_screen, load_image
+from solitaire_vision.capture import (grab_screen, load_image, load_region,
+                                      pick_region, save_region)
 from solitaire_vision.identify import save_template, split_corner
 
 
+def resolve_region(args):
+    """Region from --region, else the saved --region-file if it exists, else None."""
+    if getattr(args, "region", None):
+        return tuple(args.region)
+    rf = getattr(args, "region_file", None)
+    if rf and os.path.exists(rf):
+        return load_region(rf)
+    return None
+
+
 def get_frame(args):
-    if args.image:
+    if getattr(args, "image", None):
         return load_image(args.image)
-    return grab_screen(tuple(args.region) if args.region else None)
+    return grab_screen(resolve_region(args))
 
 
 def make_config(args):
@@ -104,6 +117,18 @@ def cmd_label(args):
     print(f"templates saved under {args.templates}/")
 
 
+def cmd_pick(args):
+    region = pick_region(monitor=args.monitor)
+    if region is None:
+        print("no region selected.")
+        return
+    save_region(args.region_file, region)
+    left, top, w, h = region
+    print(f"region saved to {args.region_file}: left={left} top={top} width={w} height={h}")
+    print("detect/watch will now use it automatically, or pass it explicitly with:")
+    print(f"  --region {left} {top} {w} {h}")
+
+
 def cmd_watch(args):
     templates = TemplateSet(args.templates)
     cfg = make_config(args)
@@ -127,7 +152,10 @@ def main():
         src = s.add_mutually_exclusive_group()
         src.add_argument("--image", help="screenshot file instead of live screen")
         src.add_argument("--screen", action="store_true", help="capture the live screen (default)")
-        s.add_argument("--region", type=int, nargs=4, metavar=("LEFT", "TOP", "W", "H"))
+        s.add_argument("--region", type=int, nargs=4, metavar=("LEFT", "TOP", "W", "H"),
+                       help="screen pixels to capture; overrides --region-file")
+        s.add_argument("--region-file", default="region.json",
+                       help="saved region from `pick` (used when --region is omitted)")
         s.add_argument("--templates", default="templates")
         s.add_argument("--back-hsv", type=int, nargs=6, metavar="N",
                        help="HSV lower+upper bounds of the card back colour, e.g. 100 120 80 130 255 255")
@@ -135,6 +163,12 @@ def main():
             s.add_argument("--out", help="write an annotated copy of the frame here")
         if name == "watch":
             s.add_argument("--interval", type=float, default=1.0)
+
+    sp = sub.add_parser("pick", help="drag a box over the game window and save it")
+    sp.set_defaults(fn=cmd_pick)
+    sp.add_argument("--region-file", default="region.json", help="where to save the region")
+    sp.add_argument("--monitor", type=int, default=1, help="monitor number to capture from")
+
     args = p.parse_args()
     args.fn(args)
 

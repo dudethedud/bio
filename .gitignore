@@ -1,4 +1,5 @@
 templates/
+region.json
 card_*.png
 __pycache__/
 .pytest_cache/
